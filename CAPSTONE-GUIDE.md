@@ -108,3 +108,94 @@ This is the coordinated, self-correcting change that spans layers:
 
 **Acceptance (met):** app boots locally, a host can create a session and is given
 a join code, and a team can join via that code.
+
+---
+
+## Step 2 — `.github/copilot-instructions.md` as context anchor
+
+**Technique (session 2):** A single `.github/copilot-instructions.md` that
+references all project docs is read automatically by Copilot in every chat,
+keeping generated code aligned to documented standards. Paired with a discipline
+of *critically reviewing* AI-generated tests rather than trusting them.
+
+### 2a. Build the context anchor (docs first, one at a time)
+
+Four guideline docs were authored, and after each one the instructions file was
+updated to reference it (mirroring lab 2's `2-1` → `2-4`):
+
+1. [docs/functional-requirements.md](docs/functional-requirements.md) — roles,
+   entities, the fixed 7-feature set, API conventions, and a live
+   implementation-status table.
+2. [docs/ui-guidelines.md](docs/ui-guidelines.md) — MUI design system, screen
+   specs, interaction/accessibility patterns.
+3. [docs/testing-guidelines.md](docs/testing-guidelines.md) — test stack and,
+   crucially, the **AI-test review checklist** ("can I break the function and
+   still have the test pass?", no phantom assertions, no mock hallucinations).
+4. [docs/coding-guidelines.md](docs/coding-guidelines.md) — style, backend/
+   frontend structure (thin routers, store owns data rules, components call
+   `api.js`), error handling, git practices.
+
+The anchor itself: [.github/copilot-instructions.md](.github/copilot-instructions.md)
+— a short project summary plus an "Always follow these docs" section linking all
+four, and a "Working agreements" list. Because Copilot loads this file
+automatically, every subsequent prompt inherits these standards without having to
+restate them.
+
+### 2b. Build a feature "with context" (plan → review → implement)
+
+The designated feature was **round management + score entry** (features 4 & 5).
+Following the lab-2 flow, an implementation plan was proposed and **reviewed
+before any code was written**, then implemented so the output conformed to the
+just-written guidelines:
+
+- Backend (thin routers, store owns rules — per coding-guidelines):
+  - [store.js](packages/backend/src/store.js) gained `Round`/`Score` state and
+    helpers: `createRound` (auto-increments `roundNumber`), `listRounds`,
+    `getRound`, `getTeam`, `upsertScore` (edits in place per `(round, team)`),
+    `listScoresBySession`.
+  - [routes/rounds.js](packages/backend/src/routes/rounds.js) — `POST`/`GET`
+    with validation (`category` required, `maxPoints` positive, session exists).
+  - [routes/scores.js](packages/backend/src/routes/scores.js) — upsert with
+    boundary validation (`0 ≤ points ≤ round.maxPoints`; round + team must
+    exist).
+- Frontend (MUI + `api.js`, never axios directly — per ui-guidelines):
+  - [pages/ManageSession.js](packages/frontend/src/pages/ManageSession.js) —
+    add-round form plus a per-round score-entry table over joined teams; editing
+    a cell upserts the score. Reached via a "Manage session" button on the
+    create-session success screen.
+  - [api.js](packages/frontend/src/api.js) gained `addRound`, `listRounds`,
+    `upsertScore`, `listScores`.
+
+### 2c. Validate the tests (the review beat)
+
+Per testing-guidelines, the generated tests were not trusted on green alone. The
+`maxPoints` cap check in `routes/scores.js` was **deliberately disabled**, then
+the cap test was run:
+
+```
+npx jest rounds-scores -t "maxPoints"
+→ FAIL: expected status 400, received 201
+```
+
+The test failed exactly as it should — confirming it is a real assertion tied to
+the implementation, not a false positive. The implementation was then restored
+and the full suite re-run green.
+
+### What to watch for
+
+- **Upsert vs. duplicate:** re-entering a score must edit the existing record,
+  not append a second one. Pinned by a test asserting the score list stays length
+  1 after an edit.
+- **Boundary validation lives in the router,** data shape/identity in the store —
+  matching the coding-guidelines separation.
+- **The anchor only helps if it's honest:** the functional-requirements status
+  table is kept current (features 4/5 now marked done, 6 deferred to Step 3) so
+  the context never lies to future prompts.
+
+### Verification
+
+- Backend: `npm run test:backend` → **13/13** passing (5 core + 8 round/score).
+- Frontend: `npm run test:frontend` → 1/1 passing.
+
+**Acceptance (met):** round + score CRUD works against a test suite that was
+actively reviewed and proven to fail on a real regression, not just accepted.

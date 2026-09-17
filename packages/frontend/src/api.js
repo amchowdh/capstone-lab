@@ -15,4 +15,19 @@ export const joinSession = (payload) =>
 export const listTeams = (sessionId) =>
   api.get('/teams', { params: { sessionId } }).then((r) => r.data);
 
+export const getSession = (id) =>
+  api.get(`/sessions/${id}`).then((r) => r.data);
+
+export const addRound = (payload) =>
+  api.post('/rounds', payload).then((r) => r.data);
+
+export const listRounds = (sessionId) =>
+  api.get('/rounds', { params: { sessionId } }).then((r) => r.data);
+
+export const upsertScore = (payload) =>
+  api.post('/scores', payload).then((r) => r.data);
+
+export const listScores = (sessionId) =>
+  api.get('/scores', { params: { sessionId } }).then((r) => r.data);
+
 export default api;

@@ -4,6 +4,7 @@ import { AppBar, Toolbar, Typography, Button, Container, Box } from '@mui/materi
 import Home from './pages/Home';
 import CreateSession from './pages/CreateSession';
 import JoinSession from './pages/JoinSession';
+import ManageSession from './pages/ManageSession';
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/create" element={<CreateSession />} />
             <Route path="/join" element={<JoinSession />} />
+            <Route path="/session/:id/manage" element={<ManageSession />} />
           </Routes>
         </Box>
       </Container>

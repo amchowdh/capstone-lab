@@ -132,4 +132,23 @@ describe('Score entry (Step 2)', () => {
       .send({ roundId: round.id, teamId: 9999, points: 5 });
     expect(missingTeam.status).toBe(404);
   });
+
+  // Regression for issue #1: a team from another session must not be scorable
+  // against this round (would corrupt the other session's leaderboard).
+  it('rejects a score for a team that is not in the round\'s session', async () => {
+    const sessionA = await newSession();
+    const roundA = (
+      await request(app)
+        .post('/api/rounds')
+        .send({ sessionId: sessionA.id, category: 'History', maxPoints: 10 })
+    ).body;
+
+    const sessionB = await newSession();
+    const teamB = await joinTeam(sessionB, 'Outsiders');
+
+    const res = await request(app)
+      .post('/api/scores')
+      .send({ roundId: roundA.id, teamId: teamB.id, points: 5 });
+    expect(res.status).toBe(400);
+  });
 });

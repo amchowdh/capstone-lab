@@ -1,50 +1,93 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+- Version change: (initial) → 1.0.0
+- Ratification: initial adoption of the Trivia Night constitution
+- Principles defined: I. Minimal Scope; II. Test-First (NON-NEGOTIABLE);
+  III. Thin Routers, Store Owns Data Rules; IV. Frontend Consistency;
+  V. Validate at Boundaries
+- Added sections: Technology & Structure Constraints; Development Workflow &
+  Quality Gates; Governance
+- Removed sections: none
+- Templates reviewed: plan-template.md, spec-template.md, tasks-template.md
+  (Constitution Check aligns with these principles)
+- Deferred TODOs: none
+-->
+
+# Trivia Night Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Minimal Scope (No Gold-Plating)
+The app MUST stay small. Only the fixed feature set in
+`docs/functional-requirements.md` is in scope; new features MUST NOT be added
+without an explicit requirement. Prefer the simplest solution that satisfies the
+requirement. Depth comes from *how* a feature is built (the technique), never
+from adding more features. Rationale: the project exists to demonstrate
+AI-driven development techniques on a believable-but-tiny app.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Test-First (NON-NEGOTIABLE)
+Every behavior change follows **Red-Green-Refactor**: write a failing test, make
+it pass with minimal code, then refactor. Tests MUST be behavior-focused and
+actively reviewed — for any critical test, breaking the implementation MUST make
+it fail ("can I break the function and still have the test pass?"). Phantom
+assertions and mock-hallucinations are rejected. Rationale: AI-generated tests
+can pass for the wrong reasons; the review discipline is what makes them trustworthy.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Thin Routers, Store Owns Data Rules
+Backend Express routers MUST only validate input and delegate; all data rules and
+entity relationships live in `store.js`. Business logic MUST NOT leak into route
+handlers. Rationale: a single source of truth for data keeps the small codebase
+coherent and testable.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Frontend Consistency (MUI + api.js)
+Frontend components MUST use Material UI (with the `sx` prop for one-off styling)
+and MUST call the backend through `api.js` — never `axios` (or `fetch`) directly.
+Inputs MUST be labeled and keyboard-accessible; color MUST never be the only
+signal. Rationale: one styling system and one HTTP boundary keep the UI
+consistent and accessible.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Validate at Boundaries
+Request bodies MUST be validated at the route boundary and return a structured
+`{ error }` with the correct status: `400` (invalid input), `404` (missing
+resource), `409` (conflict). Cross-entity relationships MUST be validated (e.g. a
+team may only be scored against a round in its own session). Internal calls are
+NOT over-validated. Rationale: validate where untrusted input enters; trust
+internal invariants.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Technology & Structure Constraints
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- **Stack**: Node.js/Express backend + React (MUI) frontend built with **Vite**,
+  organized as npm workspaces (`packages/backend`, `packages/frontend`).
+- **Persistence**: an in-memory store is sufficient; no database is required.
+- **Testing**: Jest + Supertest (backend), Vitest + React Testing Library
+  (frontend), Playwright (optional E2E for critical journeys).
+- **Style**: 2-space indent, semicolons, single quotes, `camelCase` /
+  `PascalCase` (components) / `UPPER_SNAKE_CASE` (constants). Comment *why*, not
+  *what*.
+- No Terraform/AWS/OIDC, no polyglot services, no auth/profile scope beyond the
+  documented feature set.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Development Workflow & Quality Gates
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- **Branches**: feature work on `feature/<slug>` (or `fix/<slug>`); merge to
+  `main`. Push only with maintainer approval.
+- **Commits**: conventional commits (`feat:`, `fix:`, `test:`, `refactor:`,
+  `chore:`, `docs:`), atomic, with a short *why* in the body.
+- **Quality gate**: all test suites MUST be green and free of lint errors before
+  merge.
+- **Scope-bounded agents**: `tdd-developer` (features + unit/integration tests),
+  `code-reviewer` (lint/quality only), `test-engineer` (Playwright only) stay in
+  their lanes.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes ad-hoc practices for Trivia Night. Amendments MUST
+be recorded here with a semantic-version bump: **MAJOR** for
+backward-incompatible principle changes/removals, **MINOR** for new or materially
+expanded principles/sections, **PATCH** for clarifications. Every pull request
+MUST verify compliance with these principles; deviations MUST be justified in the
+PR description or the change reverted. Runtime development guidance lives in
+`.github/copilot-instructions.md` and the `docs/` guidelines, which MUST remain
+consistent with this document.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-09-17 | **Last Amended**: 2026-09-17

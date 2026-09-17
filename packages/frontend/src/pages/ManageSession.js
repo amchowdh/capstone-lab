@@ -20,7 +20,8 @@ import {
   listRounds,
   addRound,
   listScores,
-  upsertScore
+  upsertScore,
+  closeSession
 } from '../api';
 
 // Host screen: add rounds to a session and enter/edit each team's score.
@@ -85,6 +86,17 @@ export default function ManageSession() {
     }
   };
 
+  const handleClose = async () => {
+    if (!window.confirm('Close this session and finalize the results?')) return;
+    setError('');
+    try {
+      await closeSession(id);
+      load();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to close session');
+    }
+  };
+
   if (!session) {
     return (
       <Paper sx={{ p: 3 }}>
@@ -102,14 +114,22 @@ export default function ManageSession() {
             Join code: <strong>{session.joinCode}</strong> · {teams.length} team
             {teams.length === 1 ? '' : 's'} joined
           </Typography>
-          <Button
-            variant="outlined"
-            component={Link}
-            to={`/session/${session.id}/leaderboard`}
-            sx={{ alignSelf: 'flex-start' }}
-          >
-            View leaderboard
-          </Button>
+          <Stack direction="row" spacing={2}>
+            <Button
+              variant="outlined"
+              component={Link}
+              to={`/session/${session.id}/leaderboard`}
+            >
+              View leaderboard
+            </Button>
+            {session.status === 'closed' ? (
+              <Alert severity="info" sx={{ py: 0 }}>Session closed — results are final</Alert>
+            ) : (
+              <Button variant="contained" color="secondary" onClick={handleClose}>
+                Close session
+              </Button>
+            )}
+          </Stack>
         </Stack>
       </Paper>
 

@@ -61,6 +61,13 @@ function getSessionByCode(joinCode) {
   );
 }
 
+function updateSession(id, changes) {
+  const session = getSession(id);
+  if (!session) return null;
+  Object.assign(session, changes);
+  return session;
+}
+
 // --- Teams ---
 function createTeam({ sessionId, name }) {
   const team = {
@@ -150,6 +157,7 @@ module.exports = {
   listSessions,
   getSession,
   getSessionByCode,
+  updateSession,
   createTeam,
   listTeams,
   findTeamByName,

@@ -2,19 +2,19 @@ const store = require('./store');
 
 // Computes the live leaderboard for a session.
 // - total points per team across all rounds; a missing score counts as 0
-// - ranked by total points descending, then by a tie-break: highest single
-//   round score (descending)
-// - standard competition ranking on the (totalPoints, bestRoundScore) pair:
-//   two teams share a rank only when BOTH values are equal, with a gap after
-//   the tie group (e.g. 1, 2, 2, 4)
-// - `tied` flags teams that still share their (totalPoints, bestRoundScore)
-//   with at least one other team after the tie-break
-//
-// A richer, cross-round tie-break rule is specified later via SpecKit (Step 6).
+// - best-single-round score is the first tie-break (Step 5)
+// - when the session is CLOSED, a second tie-break applies: highest score in the
+//   last (highest-numbered) round. Teams equal on total, best-round AND
+//   last-round share a rank → an explicit joint win (Step 6, spec 001).
+// - `isFinal` is true when the session is closed (final results).
 function computeLeaderboard(sessionId) {
+  const session = store.getSession(sessionId);
+  const isFinal = !!session && session.status === 'closed';
+
   const teams = store.listTeams(sessionId);
   const scores = store.listScoresBySession(sessionId);
-  const rounds = store.listRounds(sessionId);
+  const rounds = store.listRounds(sessionId); // sorted by roundNumber asc
+  const lastRound = rounds.length ? rounds[rounds.length - 1] : null;
 
   const standings = teams.map((team) => {
     const teamScores = scores.filter((s) => s.teamId === team.id);
@@ -23,18 +23,31 @@ function computeLeaderboard(sessionId) {
       (max, s) => Math.max(max, s.points),
       0
     );
-    return { teamId: team.id, teamName: team.name, totalPoints, bestRoundScore };
+    const lastRoundScore = lastRound
+      ? teamScores.find((s) => s.roundId === lastRound.id)?.points ?? 0
+      : 0;
+    return {
+      teamId: team.id,
+      teamName: team.name,
+      totalPoints,
+      bestRoundScore,
+      lastRoundScore
+    };
   });
 
+  // Final standings add last-round as a third criterion; live standings do not.
   standings.sort(
     (a, b) =>
       b.totalPoints - a.totalPoints ||
       b.bestRoundScore - a.bestRoundScore ||
+      (isFinal ? b.lastRoundScore - a.lastRoundScore : 0) ||
       a.teamId - b.teamId
   );
 
-  // A team is tied only when another shares BOTH total and best-round score.
-  const rankKey = (s) => `${s.totalPoints}:${s.bestRoundScore}`;
+  const rankKey = (s) =>
+    isFinal
+      ? `${s.totalPoints}:${s.bestRoundScore}:${s.lastRoundScore}`
+      : `${s.totalPoints}:${s.bestRoundScore}`;
   const keyCounts = standings.reduce((acc, s) => {
     acc[rankKey(s)] = (acc[rankKey(s)] || 0) + 1;
     return acc;
@@ -57,7 +70,7 @@ function computeLeaderboard(sessionId) {
     scores.some((s) => s.roundId === r.id)
   ).length;
 
-  return { standings, roundsTotal: rounds.length, roundsScored };
+  return { isFinal, standings, roundsTotal: rounds.length, roundsScored };
 }
 
 module.exports = { computeLeaderboard };

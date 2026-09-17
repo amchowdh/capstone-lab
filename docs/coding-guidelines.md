@@ -2,7 +2,7 @@
 
 ## Language & style
 - Node.js + React, JavaScript (CommonJS on the backend, ES modules on the
-  frontend via react-scripts).
+  frontend, built with Vite).
 - 2-space indentation; semicolons; single quotes; lines ideally under 100 chars.
 - `camelCase` for variables/functions, `PascalCase` for React components and
   their files, `UPPER_SNAKE_CASE` for constants.

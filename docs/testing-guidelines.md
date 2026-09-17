@@ -3,8 +3,8 @@
 ## Stack
 - **Backend:** Jest + Supertest against the Express app
   ([packages/backend](../packages/backend)).
-- **Frontend unit/integration:** Jest + React Testing Library (via
-  react-scripts).
+- **Frontend unit/integration:** Vitest + React Testing Library (jsdom
+  environment).
 - **End-to-end:** Playwright (introduced in Step 5).
 
 ## Conventions
@@ -37,5 +37,5 @@ AI-written tests can pass for the wrong reasons. Before trusting a test, apply:
 
 ## Commands
 - `npm run test:backend` — backend Jest suite.
-- `npm run test:frontend` — frontend Jest suite (`--watchAll=false`).
+- `npm run test:frontend` — frontend Vitest suite (`vitest run`).
 - `npm test` — both.

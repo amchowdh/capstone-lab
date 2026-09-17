@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Typography,
   TextField,
@@ -40,6 +41,13 @@ export default function JoinSession() {
           <Typography color="text.secondary">
             Sit tight — the host will start the rounds soon.
           </Typography>
+          <Button
+            variant="contained"
+            component={Link}
+            to={`/session/${result.session.id}/leaderboard`}
+          >
+            View leaderboard
+          </Button>
           <Button onClick={() => setResult(null)}>Join another</Button>
         </Stack>
       </Paper>

@@ -30,4 +30,7 @@ export const upsertScore = (payload) =>
 export const listScores = (sessionId) =>
   api.get('/scores', { params: { sessionId } }).then((r) => r.data);
 
+export const getLeaderboard = (sessionId) =>
+  api.get(`/sessions/${sessionId}/leaderboard`).then((r) => r.data);
+
 export default api;

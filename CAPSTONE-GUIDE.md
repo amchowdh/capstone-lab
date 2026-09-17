@@ -278,3 +278,65 @@ is now committed for reproducible installs (needed by Steps 5 & 7).
 **Acceptance (met):** the leaderboard screen exists and matches the sketch;
 PRD/epics/diagram docs exist under `docs/`; the tie-break ambiguity is preserved
 for Step 6.
+
+---
+
+## Step 4 — MCP (Model Context Protocol) tool orchestration
+
+**Technique (session 4):** An MCP server gives Copilot Agent Mode real external
+tool access (GitHub issue search/create/comment, PR creation/merge) that it
+invokes automatically mid-conversation — no manual `gh`/web-UI, just
+natural-language requests with permission prompts. Here it operates on the
+**real** `amchowdh/capstone-lab` repo, so every issue/PR is genuine.
+
+### 4a. Register the GitHub MCP server
+[.vscode/mcp.json](.vscode/mcp.json) registers the hosted GitHub MCP server:
+
+```json
+{ "servers": { "github": { "type": "http", "url": "https://api.githubcopilot.com/mcp/" } } }
+```
+
+Start it from the CodeLens **Start** button in `mcp.json` and approve the GitHub
+auth prompt; VS Code then exposes the server's tools to Agent Mode.
+
+> **Repro gotcha:** VS Code only shows the Start CodeLens for an `mcp.json` at a
+> **workspace-folder root** `.vscode/`. If the repo is opened as a *subfolder* of
+> a larger workspace, add the same config at the workspace root (or use
+> *Command Palette → “MCP: Add Server…”*) so the server actually starts in the
+> window your chat runs in.
+
+### 4b. Seed real issues (via MCP)
+Three genuine, small issues were created on the repo **through MCP** (not the web
+UI), each mapping to real code:
+- **#1 (bug)** — scores can be recorded for a team not in the round's session.
+- **#2 (enhancement)** — host can close a session to finalize results.
+- **#3 (enhancement)** — support a "lightning round" worth double points.
+
+### 4c. Triage → prioritize → implement the top one
+Agent Mode listed the open issues via MCP and prioritized **#1** (a correctness
+bug that silently corrupts leaderboards outranks the two enhancements). The fix:
+[routes/scores.js](packages/backend/src/routes/scores.js) now rejects a score
+(`400`) when `team.sessionId !== round.sessionId`, with a regression test in
+[rounds-scores.test.js](packages/backend/__tests__/rounds-scores.test.js).
+
+### 4d. Ship it — real branch, real PR, real merge (via MCP)
+- Local git created `fix/cross-session-score-validation`, committed the fix, and
+  pushed it.
+- The **PR was opened via MCP** ([#4](https://github.com/amchowdh/capstone-lab/pull/4)),
+  body referencing `Closes #1`.
+- The **PR was merged via MCP** (squash → `main`), which **auto-closed #1**; a
+  closing summary comment was posted on #1 via MCP.
+
+Division of labor: all **GitHub-state** operations (issue create/list/comment, PR
+create/merge) went through **MCP**; local `git` was used only for the working-copy
+branch/commit/push. Issues #2 and #3 remain open as a realistic backlog.
+
+### Verification
+- Backend: `npm run test:backend` → **19/19** (adds the cross-session regression
+  test).
+- GitHub: issue #1 shows `state: closed`, `state_reason: completed`, closed by
+  merged PR #4; `main` fast-forwarded to include the squash-merged fix.
+
+**Acceptance (met):** a real issue was resolved via a real PR on the repo,
+orchestrated end-to-end through MCP + Agent Mode (no manual `gh` CLI or GitHub UI
+edits for the GitHub-state changes).

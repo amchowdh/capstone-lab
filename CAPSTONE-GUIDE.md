@@ -462,3 +462,74 @@ on top, distinct and auditable.
 **Acceptance (met):** `constitution.md` and `specs/001-final-tiebreak/{spec,plan,tasks}.md`
 exist and are coherent; the clarify step resolved genuine ambiguity; the
 implementation is green. The feature is merged via the Step 7 PR.
+
+---
+
+## Step 7 — Lite golden path: prompt-driven CI + PR description
+
+**Technique (session 7, infra-light):** Prompt files (`.github/prompts/*.prompt.md`)
+are reusable generation recipes driven by versioned requirements context. We borrow
+**only** the CI-generation and PR-description-generation patterns — no
+Terraform/AWS/OIDC/Docker (explicitly out of scope).
+
+### 7a. Requirements-driven CI generation
+- [context/ci-requirements.md](context/ci-requirements.md) — the versioned context:
+  Node 22, npm workspaces, triggers, jobs (lint + test + coverage gate), and an
+  explicit "out of scope" list.
+- [.github/prompts/ci-pipeline.prompt.md](.github/prompts/ci-pipeline.prompt.md) —
+  the recipe. Running **`/ci-pipeline`** generated
+  [.github/workflows/ci.yml](.github/workflows/ci.yml): a `lint` job (`npm run lint`)
+  and a `test` job (backend Jest with coverage + summary, frontend Vitest), on
+  push/PR to `main`.
+
+### 7b. The lint gate (the deferred Step 5 concern)
+ESLint was introduced here (where CI needs it): [eslint.config.js](eslint.config.js)
+(flat config; `react/jsx-uses-vars` so JSX-referenced imports aren't false-flagged)
++ a root `lint` script → **0 problems**. The backend Jest config gained a
+**coverage gate** (statements/functions/lines ≥ 80%, branches ≥ 75%; actual ≈ 89–92%).
+
+### 7c. Prompt-generated PR description
+- [.github/prompts/generate-description.prompt.md](.github/prompts/generate-description.prompt.md)
+  — reads the branch diff + docs/spec and writes a structured PR body.
+- Running **`/generate-description`** produced the description (Summary · What
+  Changed · Why · How to Adopt/Verify · Evidence · Checklist) grounded in the real
+  27-file diff.
+
+### 7d. The real PR
+`001-final-tiebreak` was pushed and opened as
+[PR #5](https://github.com/amchowdh/capstone-lab/pull/5) against `main` with the
+generated description; CI (`lint` + `test`) ran on it, and it was reviewed and
+**merged** — landing the tie-break feature, the SpecKit artifacts, and the
+golden-path CI on `main` together.
+
+> **Structure note:** to keep this to one genuine PR *and* have CI gate that PR,
+> the Step 7 CI/lint setup rode the same feature branch as the tie-break feature.
+> A production repo would land reusable CI on `main` independently; here the single
+> PR best demonstrates both the CI gate and the description generator.
+
+### Verification
+- `.github/workflows/ci.yml` runs `lint` + `test` on push/PR to `main` (verified
+  green locally: lint 0 problems, backend 30/30 with the coverage gate, frontend 4/4).
+- The Step 6 feature was merged via a PR carrying an AI-generated description.
+
+**Acceptance (met):** CI runs lint + test (with a coverage gate) on push/PR, and
+the SpecKit feature merged via a PR whose description was prompt-generated.
+
+---
+
+## Wrap-up
+
+All seven techniques are demonstrated end-to-end on one small app:
+
+| Step | Technique | Evidence |
+|---|---|---|
+| 1 | Agent Mode delegation | create-session + join, self-correcting follow-up |
+| 2 | copilot-instructions context anchor | 4 guideline docs + reviewed tests |
+| 3 | Artifact/image-driven spec | planning notes, wireframe PNG, PRD, Mermaid, leaderboard-from-sketch |
+| 4 | MCP tool orchestration | real issues → PR #4 → merge → close, all via MCP |
+| 5 | Agentic workflow infra | agents + prompts + tiered memory; tie-break via `/execute-step` TDD |
+| 6 | SpecKit spec-driven development | constitution → spec → clarify → plan → tasks → implement (feature 001) |
+| 7 | Prompt-driven CI + PR description | `/ci-pipeline` → ci.yml; `/generate-description` → PR #5 |
+
+Run it: `npm install` then `npm start` (backend :3030, frontend :3000);
+`npm test` for backend + frontend, `npm run lint` for the gate.

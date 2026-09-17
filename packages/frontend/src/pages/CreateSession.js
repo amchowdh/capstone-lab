@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Typography,
   TextField,
@@ -35,6 +36,13 @@ export default function CreateSession() {
           <Alert severity="success">
             Share this join code with teams: <strong>{session.joinCode}</strong>
           </Alert>
+          <Button
+            variant="contained"
+            component={Link}
+            to={`/session/${session.id}/manage`}
+          >
+            Manage session
+          </Button>
           <Button onClick={() => setSession(null)}>Create another</Button>
         </Stack>
       </Paper>

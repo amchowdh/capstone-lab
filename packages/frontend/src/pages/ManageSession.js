@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import {
   Typography,
   TextField,
@@ -102,6 +102,14 @@ export default function ManageSession() {
             Join code: <strong>{session.joinCode}</strong> · {teams.length} team
             {teams.length === 1 ? '' : 's'} joined
           </Typography>
+          <Button
+            variant="outlined"
+            component={Link}
+            to={`/session/${session.id}/leaderboard`}
+            sx={{ alignSelf: 'flex-start' }}
+          >
+            View leaderboard
+          </Button>
         </Stack>
       </Paper>
 

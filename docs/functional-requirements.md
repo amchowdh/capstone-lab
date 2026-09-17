@@ -38,7 +38,7 @@ it exists to demonstrate AI-driven development techniques (see
 | 3 | Team joins via code | Done | Step 1 |
 | 4 | Host adds rounds | Done | Step 2 |
 | 5 | Host enters/edits scores | Done | Step 2 |
-| 6 | Live leaderboard | Later | Step 3 |
+| 6 | Live leaderboard | Done | Step 3 |
 | — | Tie-break ranking | Later | Steps 5–6 |
 | 1 | Host auth (JWT) | Later | as needed |
 | 7 | Close session / final results | Later | as needed |

@@ -7,8 +7,9 @@
 ## Project
 Trivia Night is a small app where a **host** runs a live trivia session and
 **teams** join with a short code and follow a live leaderboard. Stack: Node.js/
-Express backend + React (MUI) frontend, npm workspaces (`packages/backend`,
-`packages/frontend`), in-memory store, Jest/Supertest/RTL/Playwright tests.
+Express backend + React (MUI) frontend built with Vite, npm workspaces
+(`packages/backend`, `packages/frontend`), in-memory store, Jest/Supertest
+(backend) + Vitest/RTL (frontend) + Playwright (E2E) tests.
 
 The app is intentionally minimal — it demonstrates AI-driven development
 techniques. Do not add features beyond the functional requirements.

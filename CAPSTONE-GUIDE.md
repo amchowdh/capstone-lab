@@ -199,3 +199,82 @@ and the full suite re-run green.
 
 **Acceptance (met):** round + score CRUD works against a test suite that was
 actively reviewed and proven to fail on a real regression, not just accepted.
+
+---
+
+## Step 3 — Artifact- & image-driven specification
+
+**Technique (session 3):** Feed Copilot raw project artifacts (transcripts, chat
+exports) and an actual **image** as first-class context, and generate specs in
+**phased, reviewable passes** rather than one big prompt — then implement a UI to
+match the image.
+
+### 3a. Raw artifacts as context
+- [docs/artifacts/trivia-night-planning-notes.md](docs/artifacts/trivia-night-planning-notes.md)
+  — a deliberately messy, conversational planning transcript (standing in for a
+  `.vtt`/Slack export) that describes the leaderboard and leaves the **final
+  tie-break rule unresolved on purpose** (that ambiguity is what SpecKit resolves
+  in Step 6).
+- [docs/artifacts/leaderboard-ui-sketch.png](docs/artifacts/leaderboard-ui-sketch.png)
+  — a **real** wireframe image of the leaderboard. Per the plan's decision point,
+  it was generated **programmatically** (Option A) by
+  [docs/artifacts/leaderboard-sketch.py](docs/artifacts/leaderboard-sketch.py)
+  (Pillow), so the sketch is reproducible rather than hand-drawn.
+
+### 3b. Synthesize the PRD (from the notes)
+`#file`-referencing the planning notes, the transcript was synthesized into
+[docs/prd-trivia-night.md](docs/prd-trivia-night.md) — problem, goals, functional
++ UX requirements, and an explicit **Open Questions** section carrying the
+unresolved tie-break forward.
+
+### 3c. Phased epics/stories
+[docs/epics-and-stories.md](docs/epics-and-stories.md) was generated in three
+passes, each reviewable before the next: **titles only → acceptance criteria →
+technical requirements**. The phase boundaries are preserved in the doc so the
+process is visible.
+
+### 3d. Diagram (Mermaid, validated)
+[docs/architecture.md](docs/architecture.md) has a Mermaid **sequence** diagram
+(score entry → leaderboard update) and a **flowchart** of the leaderboard
+computation.
+
+### 3e. Implement the leaderboard from the sketch
+Using the sketch image as visual context, the live leaderboard was implemented to
+match it:
+- Backend: [leaderboard.js](packages/backend/src/leaderboard.js) —
+  `computeLeaderboard(sessionId)` returns `{ standings, roundsTotal,
+  roundsScored }`, using **standard competition ranking** (1, 2, 2, 4), treating
+  a missing score as 0, and flagging `tied` teams. Exposed at
+  `GET /api/sessions/:id/leaderboard`.
+- Frontend: [pages/Leaderboard.js](packages/frontend/src/pages/Leaderboard.js) —
+  brand header band, "Round X of Y scored" indicator, RANK · TEAM · POINTS table,
+  first-place highlight + star, "TIE" chips, footer note, and empty states —
+  mirroring the sketch. Reachable from the host (ManageSession) and team
+  (JoinSession) screens.
+
+### Decision — replaced Create React App with Vite
+The frontend originally used `react-scripts` (CRA). Standing up the dev server
+surfaced a hard dependency conflict: CRA 5's toolchain pulls `ajv` in two
+incompatible majors (old plugins need `ajv@6`; `webpack-dev-server`'s
+`schema-utils@4` needs `ajv@8`), which collides under npm-workspaces hoisting.
+Rather than fight it with fragile `overrides`, **`react-scripts` was scrapped in
+favor of Vite + Vitest** — lighter (627 packages vs ~1,614), faster (~250ms dev
+start), and free of the webpack/ajv problem entirely. The React/MUI app and the
+RTL tests were unchanged; only the build/test runner changed. `package-lock.json`
+is now committed for reproducible installs (needed by Steps 5 & 7).
+
+### Verification
+- Backend: `npm run test:backend` → **18/18** (adds 5 leaderboard tests:
+  ranking, missing-score-as-0, tie sharing + competition gap, rounds-scored
+  progress, empty session).
+- Frontend: `npm run test:frontend` (Vitest) → **3/3** (leaderboard renders
+  ranks/points/TIE/progress; waiting state).
+- Live data match: a seeded session reproduces the sketch exactly — `1 Quiz Lords
+  58 · 2 The Brainiacs 47 · 3 Wit & Wisdom 42 (TIE) · 3 Trivia Newton-John 42
+  (TIE) · 5 Anonymice 31`, "Round 3 of 3 scored".
+- Dev server: `npm start` runs the app on :3000 proxying `/api` to :3030 for
+  visual review (no screenshot required).
+
+**Acceptance (met):** the leaderboard screen exists and matches the sketch;
+PRD/epics/diagram docs exist under `docs/`; the tie-break ambiguity is preserved
+for Step 6.

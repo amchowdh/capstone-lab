@@ -1,0 +1,14 @@
+node_modules/
+package-lock.json
+coverage/
+dist/
+build/
+.DS_Store
+*.log
+.env
+.env.local
+# Playwright
+test-results/
+playwright-report/
+# Ephemeral agent scratch (session5 memory tier)
+.github/memory/scratch/

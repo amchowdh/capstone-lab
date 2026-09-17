@@ -34,3 +34,27 @@ When generating or changing code, read and conform to:
   appropriate.
 - Write behavior-focused tests and review them ("can I break the function and
   still have the test pass?").
+
+## Workflow patterns (agentic — Step 5)
+1. **TDD (Red-Green-Refactor):** write a failing test → minimal implementation →
+   refactor. Never implement a feature before its test.
+2. **Code quality:** run lint/build → categorize issues → fix systematically →
+   re-validate. Kept separate from feature work.
+3. **UI testing:** define critical journeys → author Playwright E2E → run → triage.
+
+## Agent usage (scope-bounded)
+- **`tdd-developer`** — feature code + unit/integration tests (Jest/Supertest,
+  Vitest/RTL). Does NOT fix lint or write Playwright tests.
+- **`code-reviewer`** — lint/compile/quality only. Does NOT change behavior or tests.
+- **`test-engineer`** — Playwright UI/E2E only. Does NOT change app logic.
+
+Prompt-file slash commands drive these: `/execute-step`, `/validate-step`,
+`/commit-and-push`, `/create-ui-tests`, `/run-ui-tests` (see `.github/prompts/`).
+
+## Memory system
+- Persistent: this file + [.github/memory/instructions.md](../.github/memory/instructions.md).
+- Working: [.github/memory/](../.github/memory/) — `session-notes.md` (history),
+  `patterns-discovered.md` (accumulated), `scratch/working-notes.md` (active,
+  not committed). Read the committed memory before acting; record reusable
+  insights as you learn them. See [.github/memory/README.md](../.github/memory/README.md).
+

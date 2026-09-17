@@ -31,6 +31,20 @@ router.get('/:id', (req, res) => {
   res.json(session);
 });
 
+// Host updates a session's status (e.g. close it to finalize results).
+router.patch('/:id', (req, res) => {
+  const { status } = req.body;
+  const allowed = ['pending', 'active', 'closed'];
+  if (status !== undefined && !allowed.includes(status)) {
+    return res
+      .status(400)
+      .json({ error: `status must be one of ${allowed.join(', ')}` });
+  }
+  const session = store.updateSession(req.params.id, status ? { status } : {});
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+  res.json(session);
+});
+
 // Live leaderboard for a session (ranked standings + rounds-scored progress).
 router.get('/:id/leaderboard', (req, res) => {
   const session = store.getSession(req.params.id);

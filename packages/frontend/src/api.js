@@ -33,4 +33,7 @@ export const listScores = (sessionId) =>
 export const getLeaderboard = (sessionId) =>
   api.get(`/sessions/${sessionId}/leaderboard`).then((r) => r.data);
 
+export const closeSession = (id) =>
+  api.patch(`/sessions/${id}`, { status: 'closed' }).then((r) => r.data);
+
 export default api;

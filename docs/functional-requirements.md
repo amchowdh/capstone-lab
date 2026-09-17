@@ -39,9 +39,9 @@ it exists to demonstrate AI-driven development techniques (see
 | 4 | Host adds rounds | Done | Step 2 |
 | 5 | Host enters/edits scores | Done | Step 2 |
 | 6 | Live leaderboard | Done | Step 3 |
-| — | Tie-break ranking | Later | Steps 5–6 |
+| — | Tie-break ranking | Done | Steps 5–6 |
 | 1 | Host auth (JWT) | Later | as needed |
-| 7 | Close session / final results | Later | as needed |
+| 7 | Close session / final results | Done | Step 6 |
 
 ## API conventions
 - REST under `/api`, JSON request/response.

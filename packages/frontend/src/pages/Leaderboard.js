@@ -52,7 +52,7 @@ export default function Leaderboard() {
     );
   }
 
-  const { standings, roundsTotal, roundsScored } = board;
+  const { standings, roundsTotal, roundsScored, isFinal } = board;
 
   return (
     <Paper
@@ -76,10 +76,14 @@ export default function Leaderboard() {
           <Typography variant="h5" sx={{ fontWeight: 700, lineHeight: 1.1 }}>
             TRIVIA NIGHT
           </Typography>
-          <Typography variant="subtitle2">Live Leaderboard</Typography>
+          <Typography variant="subtitle2">
+            {isFinal ? 'Final Results' : 'Live Leaderboard'}
+          </Typography>
         </Box>
         <Typography variant="subtitle1">
-          Round {roundsScored} of {roundsTotal} scored
+          {isFinal
+            ? 'Final results'
+            : `Round ${roundsScored} of ${roundsTotal} scored`}
         </Typography>
       </Box>
 

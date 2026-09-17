@@ -48,3 +48,20 @@ test('shows a waiting state when there are no teams', async () => {
 
   expect(await screen.findByText(/Waiting for teams/i)).toBeInTheDocument();
 });
+
+test('shows a Final Results state when the session is closed', async () => {
+  api.getSession.mockResolvedValue({ id: 1, name: 'Quiz', joinCode: 'ABC123' });
+  api.getLeaderboard.mockResolvedValue({
+    isFinal: true,
+    roundsTotal: 2,
+    roundsScored: 2,
+    standings: [
+      { teamId: 1, teamName: 'Winners', totalPoints: 20, rank: 1, tied: false }
+    ]
+  });
+
+  renderAt();
+
+  expect(await screen.findByText('Final Results')).toBeInTheDocument();
+  expect(screen.getByText('Winners')).toBeInTheDocument();
+});

@@ -22,3 +22,14 @@ Reusable patterns learned during development (committed, grows over time).
   and return `400` on mismatch.
 - **Example:** `packages/backend/src/routes/scores.js`.
 - **Related files:** `store.js` (owns the entities), the route (validates).
+
+### Competition ranking on a composite key
+- **Context:** ranking with a tie-break (a primary metric plus a secondary one).
+- **Problem:** ranking on the primary value alone flags teams as tied when a
+  secondary criterion should actually separate them.
+- **Solution:** build a single composite rank key (e.g. `${total}:${bestRound}`),
+  sort by each criterion in order, then assign standard competition ranks and the
+  `tied` flag based on that composite key — so teams are "tied" only when *all*
+  ranking criteria are equal.
+- **Example:** `computeLeaderboard` in `packages/backend/src/leaderboard.js`.
+- **Related files:** `leaderboard.js`, `__tests__/leaderboard.test.js`.

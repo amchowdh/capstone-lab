@@ -10,6 +10,13 @@ router.post('/', (req, res) => {
   if (!round) return res.status(404).json({ error: 'Round not found' });
   const team = store.getTeam(teamId);
   if (!team) return res.status(404).json({ error: 'Team not found' });
+  // Guard against cross-session scoring: the team must belong to the round's
+  // session, otherwise a score would corrupt an unrelated session's leaderboard.
+  if (team.sessionId !== round.sessionId) {
+    return res
+      .status(400)
+      .json({ error: 'Team does not belong to this round\'s session' });
+  }
   if (
     points === undefined ||
     Number.isNaN(Number(points)) ||

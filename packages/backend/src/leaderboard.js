@@ -2,45 +2,55 @@ const store = require('./store');
 
 // Computes the live leaderboard for a session.
 // - total points per team across all rounds; a missing score counts as 0
-// - ranked by total points descending
-// - standard competition ranking: equal totals share a rank, with a gap after
+// - ranked by total points descending, then by a tie-break: highest single
+//   round score (descending)
+// - standard competition ranking on the (totalPoints, bestRoundScore) pair:
+//   two teams share a rank only when BOTH values are equal, with a gap after
 //   the tie group (e.g. 1, 2, 2, 4)
-// - `tied` flags teams that share their total with at least one other team
+// - `tied` flags teams that still share their (totalPoints, bestRoundScore)
+//   with at least one other team after the tie-break
 //
-// Final tie-break (who actually wins an equal top score) is intentionally NOT
-// decided here — joint ranks only. That rule is specified later via SpecKit.
+// A richer, cross-round tie-break rule is specified later via SpecKit (Step 6).
 function computeLeaderboard(sessionId) {
   const teams = store.listTeams(sessionId);
   const scores = store.listScoresBySession(sessionId);
   const rounds = store.listRounds(sessionId);
 
   const standings = teams.map((team) => {
-    const totalPoints = scores
-      .filter((s) => s.teamId === team.id)
-      .reduce((sum, s) => sum + s.points, 0);
-    return { teamId: team.id, teamName: team.name, totalPoints };
+    const teamScores = scores.filter((s) => s.teamId === team.id);
+    const totalPoints = teamScores.reduce((sum, s) => sum + s.points, 0);
+    const bestRoundScore = teamScores.reduce(
+      (max, s) => Math.max(max, s.points),
+      0
+    );
+    return { teamId: team.id, teamName: team.name, totalPoints, bestRoundScore };
   });
 
   standings.sort(
-    (a, b) => b.totalPoints - a.totalPoints || a.teamId - b.teamId
+    (a, b) =>
+      b.totalPoints - a.totalPoints ||
+      b.bestRoundScore - a.bestRoundScore ||
+      a.teamId - b.teamId
   );
 
-  const totalCounts = standings.reduce((acc, s) => {
-    acc[s.totalPoints] = (acc[s.totalPoints] || 0) + 1;
+  // A team is tied only when another shares BOTH total and best-round score.
+  const rankKey = (s) => `${s.totalPoints}:${s.bestRoundScore}`;
+  const keyCounts = standings.reduce((acc, s) => {
+    acc[rankKey(s)] = (acc[rankKey(s)] || 0) + 1;
     return acc;
   }, {});
 
-  let previousTotal = null;
+  let previousKey = null;
   let previousRank = 0;
   standings.forEach((s, index) => {
-    if (s.totalPoints === previousTotal) {
+    if (rankKey(s) === previousKey) {
       s.rank = previousRank; // share the rank of the tie group
     } else {
       s.rank = index + 1; // standard competition ranking (gap after ties)
       previousRank = s.rank;
-      previousTotal = s.totalPoints;
+      previousKey = rankKey(s);
     }
-    s.tied = totalCounts[s.totalPoints] > 1;
+    s.tied = keyCounts[rankKey(s)] > 1;
   });
 
   const roundsScored = rounds.filter((r) =>

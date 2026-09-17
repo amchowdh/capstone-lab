@@ -9,5 +9,4 @@ build/
 # Playwright
 test-results/
 playwright-report/
-# Ephemeral agent scratch (session5 memory tier)
-.github/memory/scratch/
+# Ephemeral agent scratch is governed by .github/memory/scratch/.gitignore

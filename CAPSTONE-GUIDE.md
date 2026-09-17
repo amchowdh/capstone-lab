@@ -340,3 +340,68 @@ branch/commit/push. Issues #2 and #3 remain open as a realistic backlog.
 **Acceptance (met):** a real issue was resolved via a real PR on the repo,
 orchestrated end-to-end through MCP + Agent Mode (no manual `gh` CLI or GitHub UI
 edits for the GitHub-state changes).
+
+---
+
+## Step 5 — Agentic workflow infrastructure (agents, prompts, memory)
+
+**Technique (session 5):** Build persistent agentic infrastructure **once**
+(scope-bounded agents + prompt-file slash commands + tiered memory), then drive
+iterative, self-documenting development loops through it.
+
+### 5a. The infrastructure
+- **Scope-bounded agents** ([.github/agents/](.github/agents/)):
+  - [`tdd-developer`](.github/agents/tdd-developer.agent.md) — feature code +
+    unit/integration tests; does NOT fix lint or write Playwright.
+  - [`code-reviewer`](.github/agents/code-reviewer.agent.md) — lint/quality only;
+    does NOT change behavior.
+  - [`test-engineer`](.github/agents/test-engineer.agent.md) — Playwright E2E only.
+- **Prompt-file slash commands** ([.github/prompts/](.github/prompts/)):
+  `/execute-step`, `/validate-step`, `/commit-and-push`, `/create-ui-tests`,
+  `/run-ui-tests` — each declares the agent it runs under.
+- **Tiered memory** ([.github/memory/](.github/memory/README.md)): persistent
+  `instructions.md`, historical `session-notes.md`, accumulated
+  `patterns-discovered.md`, and an ephemeral (git-ignored) `scratch/working-notes.md`.
+- `.github/copilot-instructions.md` gained *Workflow patterns*, *Agent usage*, and
+  *Memory system* sections tying it together.
+
+> **Repro gotcha (same root cause as Step 4):** VS Code discovers `.github/prompts`
+> and `.github/agents` relative to the **workspace-folder root**. When the repo is
+> a subfolder of a larger workspace, the slash commands don't appear. Fix: point
+> VS Code at the nested paths via workspace settings —
+> `chat.promptFilesLocations`, `chat.modeFilesLocations`/`chat.agentFilesLocations`
+> keyed to `capstone-lab/.github/...` — then reload the window.
+
+### 5b. Drive a feature through the loop (`/execute-step`)
+Running **`/execute-step`** (which switches to `tdd-developer`) built the
+**tie-break ranking** feature test-first:
+- **RED** — added tie-break tests; the "separate equal-total teams by best round"
+  test failed for the right reason (equal totals shared rank 1).
+- **GREEN** — [`computeLeaderboard`](packages/backend/src/leaderboard.js) now
+  computes each team's `bestRoundScore`, sorts by `total → bestRound → teamId`,
+  and ranks/flags `tied` on the composite key `${total}:${bestRound}`.
+- **REFACTOR** — the single composite key drives both sort and tie detection;
+  already tidy.
+- Backend **21/21** (the Step 3 single-round tie still passes — no regression).
+
+### 5c. The memory learning loop
+The reusable insight — *competition ranking on a composite key* — was recorded in
+[patterns-discovered.md](.github/memory/patterns-discovered.md) during the loop,
+so future work inherits it. In-progress reasoning went to the ephemeral
+`scratch/working-notes.md` (never committed).
+
+### Scope decisions
+- The **Playwright E2E** for tie ordering (via `test-engineer`) is left as an
+  optional follow-up — the tie-break is fully covered by unit tests, and the
+  E2E harness install is heavy relative to its value here.
+- The **`code-reviewer` lint pass** is deferred to **Step 7**, where the CI lint
+  gate introduces ESLint (avoids standing up lint tooling twice).
+
+### Verification
+- Backend: `npm run test:backend` → **21/21**.
+- `patterns-discovered.md` has a real entry captured during the loop.
+
+**Acceptance (met):** the tie-break logic is implemented and unit-tested via the
+agentic loop, and the memory system captured a real learning. (E2E + lint
+demonstrations are scheduled where they add the most value: E2E optional, lint at
+Step 7.)

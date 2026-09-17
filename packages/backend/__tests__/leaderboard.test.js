@@ -95,3 +95,46 @@ describe('Leaderboard (Step 3)', () => {
     expect(b.roundsScored).toBe(0);
   });
 });
+
+describe('Leaderboard tie-break (Step 5)', () => {
+  // (a) Equal totals, different best single-round score → ranked distinctly.
+  it('breaks a tie by highest single-round score (descending)', async () => {
+    const { join, addRound, score, board } = await setup();
+    const x = await join('X');
+    const y = await join('Y');
+    const r1 = await addRound(10);
+    const r2 = await addRound(10);
+    await score(r1.id, x.id, 8); // X: total 12, best 8
+    await score(r2.id, x.id, 4);
+    await score(r1.id, y.id, 6); // Y: total 12, best 6
+    await score(r2.id, y.id, 6);
+
+    const { standings } = await board();
+    const byName = Object.fromEntries(standings.map((s) => [s.teamName, s]));
+    expect(standings.map((s) => s.teamName)).toEqual(['X', 'Y']);
+    expect(byName.X.rank).toBe(1);
+    expect(byName.Y.rank).toBe(2);
+    expect(byName.X.tied).toBe(false);
+    expect(byName.Y.tied).toBe(false);
+  });
+
+  // (b) Equal on BOTH total and best round → still tied, shared rank.
+  it('keeps teams tied when total and best-round are both equal', async () => {
+    const { join, addRound, score, board } = await setup();
+    const p = await join('P');
+    const q = await join('Q');
+    const r1 = await addRound(10);
+    const r2 = await addRound(10);
+    await score(r1.id, p.id, 6); // P: total 12, best 6
+    await score(r2.id, p.id, 6);
+    await score(r1.id, q.id, 6); // Q: total 12, best 6
+    await score(r2.id, q.id, 6);
+
+    const { standings } = await board();
+    const byName = Object.fromEntries(standings.map((s) => [s.teamName, s]));
+    expect(byName.P.rank).toBe(1);
+    expect(byName.Q.rank).toBe(1);
+    expect(byName.P.tied).toBe(true);
+    expect(byName.Q.tied).toBe(true);
+  });
+});

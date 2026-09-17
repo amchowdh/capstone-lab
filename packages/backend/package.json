@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "nodemon src/index.js",
-    "test": "jest --detectOpenHandles"
+    "test": "jest --detectOpenHandles",
+    "coverage": "jest --coverage --coverageReporters=json-summary --coverageReporters=text-summary"
   },
   "dependencies": {
     "cors": "^2.8.5",

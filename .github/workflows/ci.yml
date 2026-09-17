@@ -46,11 +46,11 @@ jobs:
         run: npm ci
 
       - name: Backend tests with coverage
-        run: npm run test:backend -- --coverage --coverageReporters=json-summary --coverageReporters=text-summary
+        run: npm run coverage --workspace=backend
 
       - name: Append coverage summary
         run: |
-          node -e 'const fs=require("fs");const p="packages/backend/coverage/coverage-summary.json";const c=JSON.parse(fs.readFileSync(p,"utf8")).total;const msg=`## Backend Coverage\n- Lines: ${c.lines.pct}%\n- Branches: ${c.branches.pct}%\n- Functions: ${c.functions.pct}%\n- Statements: ${c.statements.pct}%`;fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,msg+"\n");'
+          node -e 'const fs=require("fs");const p="packages/backend/coverage/coverage-summary.json";if(!fs.existsSync(p)){console.log("no coverage summary found, skipping");process.exit(0);}const c=JSON.parse(fs.readFileSync(p,"utf8")).total;const msg=`## Backend Coverage\n- Lines: ${c.lines.pct}%\n- Branches: ${c.branches.pct}%\n- Functions: ${c.functions.pct}%\n- Statements: ${c.statements.pct}%`;fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,msg+"\n");'
 
       - name: Frontend tests
         run: npm run test:frontend

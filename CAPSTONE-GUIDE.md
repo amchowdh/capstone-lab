@@ -405,3 +405,60 @@ so future work inherits it. In-progress reasoning went to the ephemeral
 agentic loop, and the memory system captured a real learning. (E2E + lint
 demonstrations are scheduled where they add the most value: E2E optional, lint at
 Step 7.)
+
+---
+
+## Step 6 — Spec-Driven Development with SpecKit
+
+**Technique (session 6):** A fully versioned, on-disk spec pipeline
+(constitution → spec → clarify → plan → tasks → implement) that turns an
+ambiguous story into a high-confidence implementation, auditable at every stage.
+
+### 6a. Install & init
+`uv tool install specify-cli --from git+…@v0.16.2` (pinned), then
+`specify init --here --force --integration copilot --extension git` — creates
+[.specify/](.specify/) (templates, sh scripts, `memory/constitution.md`, the git
+extension) and `.github/skills/speckit-*` (the slash-command skills).
+
+> **Repro gotcha (recurring):** the `/speckit-*` skills live in
+> `capstone-lab/.github/skills/`. In a parent-folder workspace VS Code won't
+> discover them — **add `capstone-lab` as a workspace folder** (File → Add Folder
+> to Workspace) and reload. That one change also makes the Step 5 prompts/agents
+> discover natively.
+
+### 6b. The pipeline (all run by the user as `/speckit-*` slash commands)
+1. **`/speckit-constitution`** → [.specify/memory/constitution.md](.specify/memory/constitution.md)
+   `v1.0.0` — 5 principles derived from the docs (minimal scope; test-first RGR;
+   thin routers/store; MUI+`api.js`; validate at boundaries).
+2. **`/speckit-specify`** → the git hook auto-created branch `001-final-tiebreak`
+   and [specs/001-final-tiebreak/spec.md](specs/001-final-tiebreak/spec.md) with
+   **3 intentional `[NEEDS CLARIFICATION]`** markers (the genuinely undecided
+   final tie-break rule) + a requirements checklist.
+3. **`/speckit-clarify`** — interactive Q&A (3 questions), appended as a
+   `## Clarifications` section: rule = **highest score in the last round**;
+   fallback = **explicit joint win**; designated special round = **out of scope**.
+4. **`/speckit-plan`** → [plan.md](specs/001-final-tiebreak/plan.md) +
+   [research.md](specs/001-final-tiebreak/research.md),
+   [data-model.md](specs/001-final-tiebreak/data-model.md),
+   [contracts/](specs/001-final-tiebreak/contracts/leaderboard-api.md),
+   [quickstart.md](specs/001-final-tiebreak/quickstart.md); Constitution Check PASS.
+5. **`/speckit-tasks`** → [tasks.md](specs/001-final-tiebreak/tasks.md) — 15
+   dependency-ordered, test-first tasks (Setup → Foundational → US1 → US2 → US3 →
+   Polish).
+6. **`/speckit-implement`** — executed all 15 tasks test-first: close-session
+   status transition; `computeLeaderboard` gains `lastRoundScore` + `isFinal` and,
+   when closed, ranks `total → best-round → last-round` with an explicit joint win;
+   frontend "Final Results" state + close control. **Backend 30/30, frontend 4/4.**
+
+Every stage auto-committed via the SpecKit **git extension hooks**. `/speckit-analyze`
+and `/speckit-converge` were skipped by choice (implementation complete + green).
+
+### The ambiguity payoff
+Because the final tie-break was left undecided in the spec, `/speckit-clarify` had
+*real* questions to ask — the whole point of the pipeline. Step 5 built a *simple*
+best-round tiebreak via TDD; Step 6 layered the *nuanced, spec-driven* final rule
+on top, distinct and auditable.
+
+**Acceptance (met):** `constitution.md` and `specs/001-final-tiebreak/{spec,plan,tasks}.md`
+exist and are coherent; the clarify step resolved genuine ambiguity; the
+implementation is green. The feature is merged via the Step 7 PR.

@@ -12,9 +12,14 @@
     "start:backend": "npm run start --workspace=backend",
     "test": "npm run test:backend && npm run test:frontend",
     "test:frontend": "npm run test --workspace=frontend",
-    "test:backend": "npm run test --workspace=backend"
+    "test:backend": "npm run test --workspace=backend",
+    "lint": "eslint packages"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@eslint/js": "^9.9.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^9.9.0",
+    "eslint-plugin-react": "^7.35.0",
+    "globals": "^15.9.0"
   }
 }

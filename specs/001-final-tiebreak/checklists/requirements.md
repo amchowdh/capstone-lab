@@ -13,8 +13,8 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
-- [x] Requirements are testable and unambiguous *(aside from the 3 intentional clarifications)*
+- [x] No [NEEDS CLARIFICATION] markers remain
+- [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
 - [x] All acceptance scenarios are defined
@@ -31,7 +31,6 @@
 
 ## Notes
 
-- **3 intentional `[NEEDS CLARIFICATION]` markers** remain (FR-004 resolution rule,
-  FR-005 fallback, FR-007 designated-round scope). These are deliberate — the final
-  tie-break rule is genuinely undecided and is the reason to run **`/speckit-clarify`
-  next**. All other items pass.
+- All 3 clarifications resolved via `/speckit-clarify` (Session 2026-09-17):
+  FR-004 = highest score in the last round; FR-005 = explicit joint win fallback;
+  FR-007 = designated special round out of scope. Spec is ready for `/speckit-plan`.

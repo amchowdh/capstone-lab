@@ -8,6 +8,14 @@
 
 **Input**: User description: "Final tie-break to determine session winners. When a session is closed and two or more teams remain tied on total points (and on the existing best-single-round tiebreak), the final standings must resolve to a clear, deterministic outcome — either a single winner per a defined rule, or an explicitly defined shared-win. This applies ONLY to final/closed standings; mid-game ties stay as cosmetic joint ranks."
 
+## Clarifications
+
+### Session 2026-09-17
+
+- Q: When teams remain tied on total points and best-single-round score at close, which rule decides the winner? → A: Highest score in the last (highest-numbered) round.
+- Q: If teams are still tied after the last-round tie-break, what is the final result? → A: Explicit joint win (still-tied teams share the rank).
+- Q: May the tie-break use a designated special/"lightning" round, or existing data only? → A: Out of scope — existing round/score data only.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Decisive final result at session close (Priority: P1)
@@ -92,19 +100,17 @@ displayed result communicates the basis of the resolution.
   (existing behavior).
 - **FR-003**: The final tie-break MUST be **deterministic** — identical inputs
   always yield identical final standings.
-- **FR-004**: The system MUST resolve a remaining final tie using
-  [NEEDS CLARIFICATION: which rule should decide the winner? e.g. highest score in
-  the last round / highest score in a designated hard-or-"lightning" round /
-  head-to-head result in a specific category / an explicit joint win].
-- **FR-005**: When teams remain tied even after applying the chosen rule, the
-  system MUST [NEEDS CLARIFICATION: fallback behavior — declare an explicit joint
-  win / keep a stable deterministic order / require the host to choose manually].
+- **FR-004**: When teams remain tied after total points and best-single-round
+  score, the system MUST break the tie by **highest score in the last
+  (highest-numbered) round** (descending), using existing round/score data.
+- **FR-005**: When teams remain tied even after the last-round tie-break, the
+  system MUST declare an **explicit joint win** — the still-tied teams share the
+  same final rank and are clearly labeled as tied.
 - **FR-006**: The final standings MUST convey how (or whether) a top tie was
   resolved so the result is explainable to participants.
-- **FR-007**: Support for designating a special round (e.g. a "lightning"/hard
-  round) as the tie-break basis is [NEEDS CLARIFICATION: in scope — requiring a new
-  per-round attribute — or out of scope, resolving ties only from existing
-  round/score data?].
+- **FR-007**: Designating a special "lightning"/hard round as the tie-break basis
+  is **out of scope**; the tie-break resolves using existing round/score data only.
+  (A designated-round mechanic is tracked separately as a potential enhancement.)
 
 ### Key Entities *(include if feature involves data)*
 
